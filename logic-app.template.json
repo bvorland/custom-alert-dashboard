@@ -1,0 +1,91 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logicAppName": {
+      "type": "string",
+      "defaultValue": "CustomAlertLogicApp"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "dataCollectionEndpointUrl": {
+      "type": "string"
+    },
+    "dataCollectionRuleId": {
+      "type": "string"
+    },
+    "dataCollectionRuleImmutableId": {
+      "type": "string"
+    },
+    "customTableName": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "streamName": "[concat('Custom-', parameters('customTableName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2017-07-01",
+      "name": "[parameters('logicAppName')]",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "triggers": {
+            "Recurrence": {
+              "recurrence": {
+                "frequency": "Minute",
+                "interval": 5
+              },
+              "type": "Recurrence"
+            }
+          },
+          "actions": {
+            "Send_to_Data_Collection_Rule": {
+              "type": "Http",
+              "inputs": {
+                "method": "POST",
+                "uri": "[concat(parameters('dataCollectionEndpointUrl'), '/dataCollectionRules/', parameters('dataCollectionRuleImmutableId'), '/streams/', variables('streamName'), '?api-version=2023-01-01')]",
+                "headers": {
+                  "Content-Type": "application/json",
+                  "x-ms-client-request-id": "@{guid()}"
+                },
+                "body": [
+                  {
+                    "TimeGenerated": "@{utcnow()}",
+                    "Message": "Test message from Logic App",
+                    "Severity": "Information"
+                  }
+                ],
+                "authentication": {
+                  "type": "ManagedServiceIdentity",
+                  "audience": "https://monitor.azure.com"
+                }
+              }
+            }
+          }
+        },
+        "parameters": {}
+      }
+    }
+  ],
+  "outputs": {
+    "logicAppId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Logic/workflows', parameters('logicAppName'))]"
+    },
+    "systemAssignedIdentity": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Logic/workflows', parameters('logicAppName')), '2017-07-01', 'full').identity.principalId]"
+    }
+  }
+}

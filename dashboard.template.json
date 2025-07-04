@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workbookName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name for the workbook"
+      }
+    },
+    "workspaceResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the Log Analytics workspace"
+      }
+    },
+    "customTableName": {
+      "type": "string",
+      "defaultValue": "MyCustomTableData_CL",
+      "metadata": {
+        "description": "The name of the custom table containing alert data"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "microsoft.insights/workbooks",
+      "apiVersion": "2020-02-12",
+      "name": "[parameters('workbookName')]",
+      "location": "[parameters('location')]",
+      "kind": "shared",
+      "properties": {
+        "displayName": "Custom Alerts Dashboard",
+        "serializedData": "[concat('{\"version\":\"Notebook/1.0\",\"items\":[{\"type\":9,\"content\":{\"version\":\"ParametersItem/1.0\",\"crossComponentResources\":[\"', parameters('workspaceResourceId'), '\"],\"parameters\":[{\"id\":\"timerange\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"TimeRange\",\"type\":4,\"isRequired\":true,\"value\":{\"durationMs\":86400000},\"typeSettings\":{\"selectableValues\":[{\"durationMs\":300000},{\"durationMs\":900000},{\"durationMs\":1800000},{\"durationMs\":3600000},{\"durationMs\":14400000},{\"durationMs\":43200000},{\"durationMs\":86400000},{\"durationMs\":172800000},{\"durationMs\":259200000},{\"durationMs\":604800000}],\"allowCustom\":true}}],\"style\":\"pills\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\"},\"name\":\"parameters\"},{\"type\":1,\"content\":{\"json\":\"# Custom Alerts Dashboard\\n\\nThis workbook shows analytics from your **', parameters('customTableName'), '** table.\\n\\n---\"},\"name\":\"title\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"', parameters('customTableName'), ' | where TimeGenerated {TimeRange} | summarize TotalAlerts = count()\",\"size\":3,\"title\":\"Total Alerts\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"', parameters('workspaceResourceId'), '\"],\"visualization\":\"card\",\"textSettings\":{\"style\":\"bignumber\"}},\"customWidth\":\"33\",\"name\":\"totalAlerts\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"', parameters('customTableName'), ' | where TimeGenerated {TimeRange} | where TimeGenerated > ago(1h) | summarize RecentAlerts = count()\",\"size\":3,\"title\":\"Recent Alerts (1h)\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"', parameters('workspaceResourceId'), '\"],\"visualization\":\"card\",\"textSettings\":{\"style\":\"bignumber\"}},\"customWidth\":\"33\",\"name\":\"recentAlerts\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"', parameters('customTableName'), ' | where TimeGenerated {TimeRange} | summarize arg_max(TimeGenerated, *) | project LastAlert = format_datetime(TimeGenerated, \\\"yyyy-MM-dd HH:mm:ss\\\")\",\"size\":3,\"title\":\"Last Alert Time\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"', parameters('workspaceResourceId'), '\"],\"visualization\":\"card\",\"textSettings\":{\"style\":\"bignumber\"}},\"customWidth\":\"33\",\"name\":\"lastAlert\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"', parameters('customTableName'), ' | where TimeGenerated {TimeRange} | summarize Count = count() by Severity | render piechart\",\"size\":0,\"title\":\"Alert Distribution by Severity\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"', parameters('workspaceResourceId'), '\"]},\"customWidth\":\"50\",\"name\":\"severityChart\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"', parameters('customTableName'), ' | where TimeGenerated {TimeRange} | summarize Count = count() by bin(TimeGenerated, 1h) | sort by TimeGenerated asc | render timechart\",\"size\":0,\"title\":\"Alert Volume Over Time\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"', parameters('workspaceResourceId'), '\"]},\"customWidth\":\"50\",\"name\":\"timeChart\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"', parameters('customTableName'), ' | where TimeGenerated {TimeRange} | top 50 by TimeGenerated desc | project TimeGenerated, Message = coalesce(Message, \\\"No message\\\"), Severity = coalesce(Severity, \\\"Unknown\\\"), Type\",\"size\":0,\"title\":\"Recent Alerts (Latest 50)\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"', parameters('workspaceResourceId'), '\"]},\"name\":\"recentTable\"}],\"fallbackResourceIds\":[\"', parameters('workspaceResourceId'), '\"],\"$schema\":\"https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json\"}')]",
+        "category": "workbook",
+        "sourceId": "[parameters('workspaceResourceId')]"
+      }
+    }
+  ],
+  "outputs": {
+    "workbookId": {
+      "type": "string",
+      "value": "[resourceId('microsoft.insights/workbooks', parameters('workbookName'))]"
+    },
+    "workbookName": {
+      "type": "string",
+      "value": "[parameters('workbookName')]"
+    }
+  }
+}

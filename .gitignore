@@ -1,0 +1,34 @@
+# Azure deployment configuration files
+config.json
+.env
+*.env
+*.secrets
+deployment-config.json
+
+# PowerShell parameter files
+params.ps1
+*-params.ps1
+
+# Azure CLI output files
+*.log
+deployment-output.json
+
+# Visual Studio Code
+.vscode/
+.vs/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+
+# Azure credentials
+.azure/
+azure-credentials.json
+
+# Local development
+local/
+temp/

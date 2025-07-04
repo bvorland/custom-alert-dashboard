@@ -1,0 +1,6 @@
+{
+    "ResourceGroupName": "MyMonitorRG",
+    "Location": "westeurope", 
+    "SubscriptionId": "your-subscription-id-here",
+    "EnvironmentName": "prod"
+}
