@@ -19,6 +19,12 @@ An Azure monitoring solution that includes Log Analytics, Data Collection Rules,
 
 2. **Configure deployment parameters**
 
+   Option A - Use the interactive setup script (recommended):
+   ```powershell
+   .\setup.ps1
+   ```
+
+   Option B - Manual configuration:
    ```powershell
    # Copy the template configuration file
    Copy-Item "config.template.json" "config.json"
@@ -27,7 +33,7 @@ An Azure monitoring solution that includes Log Analytics, Data Collection Rules,
    # Note: config.json is gitignored to prevent exposing sensitive information
    ```
 
-3. **Update config.json with your values:**
+3. **Update config.json with your values (if using manual setup):**
 
    ```json
    {
@@ -103,6 +109,7 @@ Deploy to specific environments:
 
 ## Files Structure
 
+- `setup.ps1` - Interactive setup script for first-time configuration
 - `deploy.ps1` - Main deployment script
 - `infrastructure.bicep` - Azure infrastructure as code
 - `logic-app.template.json` - Logic App ARM template
